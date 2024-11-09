@@ -1220,10 +1220,65 @@ body {
 .markdown-body .markdown-alert.markdown-alert-caution .markdown-alert-title {
   color: var(--color-danger-fg);
 }
-</style><title>README</title></head><body><article class="markdown-body"><div class="markdown-heading"><h1 class="heading-element">ESP32-S3 RGB Color Control</h1><a id="user-content-esp32-s3-rgb-color-control" class="anchor" aria-label="Permalink: ESP32-S3 RGB Color Control" href="#esp32-s3-rgb-color-control"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
+</style><title>README</title></head><body><article class="markdown-body"><div class="markdown-heading"><h1 class="heading-element">ESP32-S3 WiFi Application</h1><a id="user-content-esp32-s3-wifi-application" class="anchor" aria-label="Permalink: ESP32-S3 WiFi Application" href="#esp32-s3-wifi-application"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
 <div class="markdown-heading"><h2 class="heading-element">Overview</h2><a id="user-content-overview" class="anchor" aria-label="Permalink: Overview" href="#overview"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
-<p>This project provides functions to control RGB LED colors on the ESP32-S3 by adjusting the duty cycle of each color
-channel (Red, Green, Blue). Specific colors represent different system statuses, such as WiFi and server states.</p>
+<p>This project provides a WiFi-enabled application on the ESP32-S3 DevKitC-1 that includes RGB LED control, HTTP server
+functionality, and FreeRTOS task management for system events. The RGB LED indicates various system states by adjusting
+color channels (Red, Green, Blue) based on the system’s status, such as WiFi initialization, server startup, and
+connection status.</p>
+<p>The application initializes as an Access Point (AP) to allow other devices to connect, providing a user interface to
+view device data (e.g., sensor readings, connection info, local time) and manage settings. Once connected, users can
+access a web page hosted by the ESP32's HTTP server. The project leverages ESP-IDF APIs for seamless WiFi management,
+using FreeRTOS queues and tasks for event handling, making the application responsive and scalable.</p>
+<p>Key functionalities include:</p>
+<ul>
+<li>Setting up an Access Point with configurable SSID, IP, and network details.</li>
+<li>Hosting an HTTP server to serve a web page with device information and settings.</li>
+<li>Using RGB LEDs to visually represent system states.</li>
+<li>Implementing FreeRTOS tasks to manage WiFi events and system notifications efficiently.</li>
+</ul>
+<div class="markdown-heading"><h2 class="heading-element">WiFi Implementation</h2><a id="user-content-wifi-implementation" class="anchor" aria-label="Permalink: WiFi Implementation" href="#wifi-implementation"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
+<ul>
+<li>The ESP32 should start its Access Point so that other devices can connect to it.
+<ul>
+<li>This enables users to access information (e.g., sensor data, device info, connection status/information, user option
+to connect and disconnect from an AP, display local time, etc.)</li>
+</ul>
+</li>
+<li>The WiFi application will start an HTTP Server, which will support a web page.</li>
+<li>The application will contain a FreeRTOS task that accepts FreeRTOS Queue messages (<code>xQueueCreate</code>, <code>xQueueSend</code>, and
+<code>xQueueReceive</code>) for event coordination.</li>
+<li>Connect the ESP32 using previously saved credentials.</li>
+</ul>
+<div class="markdown-heading"><h2 class="heading-element">ESP-IDF APIs used</h2><a id="user-content-esp-idf-apis-used" class="anchor" aria-label="Permalink: ESP-IDF APIs used" href="#esp-idf-apis-used"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
+<ul>
+<li>Configuration steps and ESP-DF APIs used
+<ul>
+<li>
+<strong>Define WiFi settings</strong>: Header file with SSID, Password, IP, Gateway, Netmask, etc.</li>
+<li>
+<strong>Define WiFi FreeRTOS task</strong>: Use <code>xTaskCreatePinnedToCore</code> or <code>xTaskCreate</code>.</li>
+<li>
+<strong>Create an event handler</strong>: Call <code>esp_event_handler_instance_register</code>.</li>
+<li>
+<strong>Implement default configure</strong>: Initialize TCP/IP stack using <code>esp_netif_init</code> and WiFi configuration by calling
+<code>esp_wifi_init</code>, <code>esp_wifi_set_storage</code>, and default configurations <code>esp_netif_create_default_wifi_ap</code>,
+<code>esp_netif_create_default_wifi_sta</code>.</li>
+<li>
+<strong>Define ESP32 SoftAP configuration</strong>: Define AP Settings <code>wifi_config_t</code> struct and static IP. APIs used:
+<ul>
+<li><code>esp_netif_set_ip_info</code></li>
+<li><code>esp_netif_dhcs_start</code></li>
+<li><code>esp_wifi_set_mode</code></li>
+<li><code>esp_wifi_set_config</code></li>
+<li><code>esp_wifi_set_bandwidth</code></li>
+<li><code>esp_wifi_set_ps</code></li>
+</ul>
+</li>
+<li>Start Wifi (<code>esp_wifi_start</code>)</li>
+</ul>
+</li>
+</ul>
 <div class="markdown-heading"><h2 class="heading-element">RGB Status Functions</h2><a id="user-content-rgb-status-functions" class="anchor" aria-label="Permalink: RGB Status Functions" href="#rgb-status-functions"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
 <p>The following status functions update the RGB color to indicate the system's current state:</p>
 <ul>
