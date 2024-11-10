@@ -8,7 +8,9 @@
 #ifndef MAIN_WIFI_APP_H
 #define MAIN_WIFI_APP_H
 
-#include "esp_netif.h" // Necessary for the network interface objects
+#include "freertos/FreeRTOS.h"
+
+#include "esp_netif.h"      // Necessary for the network interface objects
 
 // WiFi application settings
 #define WIFI_AP_SSID            "ESP32_AP"      // Access Point Name
