@@ -1250,6 +1250,18 @@ to connect and disconnect from an AP, display local time, etc.)</li>
 <code>xQueueReceive</code>) for event coordination.</li>
 <li>Connect the ESP32 using previously saved credentials.</li>
 </ul>
+<div class="markdown-heading"><h2 class="heading-element">HTTPS Server Implementation</h2><a id="user-content-https-server-implementation" class="anchor" aria-label="Permalink: HTTPS Server Implementation" href="#https-server-implementation"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
+<ul>
+<li>The HTTP Server will support the web page files (.html, .css, and .js).</li>
+<li>It will also support OTA (Over the Air) firmware updates.</li>
+<li>Additionally, support for the DHT22/DHT11 Temperature and Humidity Sensor readings for display on the web page will be
+added.</li>
+<li>The HTTP Server will be able to respond to Connection and Disconnection buttons on the web page (e.g., by entering
+SSID and Password into text fields and clicking connect and disconnect for removing a connection).</li>
+<li>The web server will also handle sending connection information (SSID, IP, Gateway, and Netmask) about the active
+connection to the web page.</li>
+<li>We will also send the ESP32's assigned SSID to the web page.</li>
+</ul>
 <div class="markdown-heading"><h2 class="heading-element">ESP-IDF APIs used</h2><a id="user-content-esp-idf-apis-used" class="anchor" aria-label="Permalink: ESP-IDF APIs used" href="#esp-idf-apis-used"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
 <ul>
 <li>Configuration steps and ESP-DF APIs used
