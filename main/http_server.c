@@ -5,7 +5,7 @@
  *     Author:         carrliitos (benzon.salazar@gmail.com)
  *
  * Last Modified by:   carrliitos
- * Last Modified time: 2024-11-25 17:53:10
+ * Last Modified time: 2024-11-25 18:18:51
  */
 
 #include "esp_http_server.h"
@@ -34,12 +34,82 @@ extern const uint8_t favicon_ico_start[]            asm("_binary_favicon_ico_sta
 extern const uint8_t favicon_ico_end[]              asm("_binary_favicon_ico_end");
 
 /**
+ * JQuery get handler is requested when access the webpage.
+ * @param req HTTP request for which the URI needs to be handled
+ * @return ESP_OK
+ */
+static esp_err_t http_server_jquery_handler(httpd_req_t *req) {
+  ESP_LOGI(TAG, "Jquery requested.");
+
+  httpd_resp_set_type(req, "application/javascript");
+  httpd_resp_send(req, (const char *) jquery_3_3_1_min_js_start, jquery_3_3_1_min_js_end - jquery_3_3_1_min_js_start);
+
+  return ESP_OK;
+}
+
+/**
+ * Sends the index.html page.
+ * @param req HTTP request for which the URI needs to be handled
+ * @return ESP_OK
+ */
+static esp_err_t http_server_index_html_handler(httpd_req_t *req) {
+  ESP_LOGI(TAG, "index.html requested.");
+
+  httpd_resp_set_type(req, "text/html");
+  httpd_resp_send(req, (const char *) index_html_start, index_html_end - index_html_start);
+
+  return ESP_OK;
+}
+
+/**
+ * app.css get handler is requested when access the webpage.
+ * @param req HTTP request for which the URI needs to be handled
+ * @return ESP_OK
+ */
+static esp_err_t http_server_app_css_handler(httpd_req_t *req) {
+  ESP_LOGI(TAG, "app.css requested.");
+
+  httpd_resp_set_type(req, "text/css");
+  httpd_resp_send(req, (const char *) app_css_start, app_css_end - app_css_start);
+
+  return ESP_OK;
+}
+
+/**
+ * app.js get handler is requested when access the webpage.
+ * @param req HTTP request for which the URI needs to be handled
+ * @return ESP_OK
+ */
+static esp_err_t http_server_app_js_handler(httpd_req_t *req) {
+  ESP_LOGI(TAG, "app.js requested.");
+
+  httpd_resp_set_type(req, "application/javascript");
+  httpd_resp_send(req, (const char *) app_js_start, app_js_end - app_js_start);
+
+  return ESP_OK;
+}
+
+/**
+ * Sends the .ico (icon) file when accessing the web page.
+ * @param req HTTP request for which the URI needs to be handled
+ * @return ESP_OK
+ */
+static esp_err_t http_server_favicon_ico_handler(httpd_req_t *req) {
+  ESP_LOGI(TAG, "favicon.ico requested.");
+
+  httpd_resp_set_type(req, "image/x-icon");
+  httpd_resp_send(req, (const char *) favicon_ico_start, favicon_ico_end - favicon_ico_start);
+
+  return ESP_OK;
+}
+
+/**
  * Sets up the default httpd server configuration
  * @return HTTP server instance handle if successfull, NULL otherwise
  */
 static httpd_handle_t http_server_configure(void) {
   // Generate default configuration
-  httpd_config_t config = HTTP_DEFAULT_CONFIG();
+  httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 
   // TODO: Create HTTP Server Monitor task
 
@@ -64,14 +134,14 @@ static httpd_handle_t http_server_configure(void) {
   ESP_LOGI(TAG, 
            "http_server_configure: Starting server on port: '%d' wit task priority: '%d'",
            config.server_port,
-           config.task_priority)
+           config.task_priority);
 
   // Start the httpd server
   if (httpd_start(&http_server_handle, &config) == ESP_OK) {
     ESP_LOGI(TAG, "http_server_configure: Registering URI handlers");
 
     // register JQuery handler
-    httpd_uri_t_ jquery_js = {
+    httpd_uri_t jquery_js = {
       .uri      = "/jquery-3.3.1.min.js",
       .method   = HTTP_GET,
       .handler  = http_server_jquery_handler,
@@ -81,7 +151,7 @@ static httpd_handle_t http_server_configure(void) {
     httpd_register_uri_handler(http_server_handle, &jquery_js);
 
     // register index.html handler
-    httpd_uri_t_ index_html = {
+    httpd_uri_t index_html = {
       .uri      = "/",
       .method   = HTTP_GET,
       .handler  = http_server_index_html_handler,
@@ -91,7 +161,7 @@ static httpd_handle_t http_server_configure(void) {
     httpd_register_uri_handler(http_server_handle, &index_html);
 
     // register app.css handler
-    httpd_uri_t_ app_css = {
+    httpd_uri_t app_css = {
       .uri      = "/app.css",
       .method   = HTTP_GET,
       .handler  = http_server_app_css_handler,
@@ -101,7 +171,7 @@ static httpd_handle_t http_server_configure(void) {
     httpd_register_uri_handler(http_server_handle, &app_css);
 
     // register app.js handler
-    httpd_uri_t_ app_js = {
+    httpd_uri_t app_js = {
       .uri      = "/app.js",
       .method   = HTTP_GET,
       .handler  = http_server_app_js_handler,
@@ -111,7 +181,7 @@ static httpd_handle_t http_server_configure(void) {
     httpd_register_uri_handler(http_server_handle, &app_js);
 
     // register favicon.ico handler
-    httpd_uri_t_ favicon_ico = {
+    httpd_uri_t favicon_ico = {
       .uri      = "/favicon.ico",
       .method   = HTTP_GET,
       .handler  = http_server_favicon_ico_handler,
@@ -120,7 +190,7 @@ static httpd_handle_t http_server_configure(void) {
 
     httpd_register_uri_handler(http_server_handle, &favicon_ico);
 
-    return http_server_handle
+    return http_server_handle;
   }
 
   return NULL;

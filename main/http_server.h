@@ -5,7 +5,7 @@
  *     Author:         carrliitos (benzon.salazar@gmail.com)
  *
  * Last Modified by:   carrliitos
- * Last Modified time: 2024-11-25 17:32:19
+ * Last Modified time: 2024-11-25 18:12:42
  */
 
 #ifndef MAIN_HTTP_SERVER_H
@@ -28,7 +28,7 @@ typedef enum http_server_message {
  * Structure for the message queue
  */
 typedef struct http_server_queue_message {
-  http_server_message msgID;
+  http_server_message_e msgID;
 } http_server_queue_message_t;
 
 /**
