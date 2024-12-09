@@ -5,7 +5,7 @@
  *     Author:         carrliitos (benzon.salazar@gmail.com)
  *
  * Last Modified by:   carrliitos
- * Last Modified time: 2024-11-25 18:18:51
+ * Last Modified time: 2024-12-08 21:55:31
  */
 
 #include "esp_http_server.h"
@@ -15,11 +15,10 @@
 #include "tasks_common.h"
 #include "wifi_app.h"
 
-// Tag used for ESP serial consol messages
-static const char TAG[] = "http_server";
-
-// HTTP Server task handle
-static httpd_handle_t http_server_handle = NULL;
+static const char TAG[] = "http_server";                // Tag used for ESP serial consol messages
+static httpd_handle_t http_server_handle = NULL;        // HTTP Server task handle
+static TaskHandle_t task_http_server_monitor = NULL;    // HTTP Server monitor task handle
+static QueueHandle_t http_server_monitor_queue_handle;  // Queue handle used to manipulate the main queue of events
 
 // Embedded files: JQuery, index.html, app.css, app.js, and favicon.ico files
 extern const uint8_t jquery_3_3_1_min_js_start[]    asm("_binary_jquery_3_3_1_min_js_start");
@@ -32,6 +31,41 @@ extern const uint8_t app_js_start[]                 asm("_binary_app_js_start");
 extern const uint8_t app_js_end[]                   asm("_binary_app_js_end");
 extern const uint8_t favicon_ico_start[]            asm("_binary_favicon_ico_start");
 extern const uint8_t favicon_ico_end[]              asm("_binary_favicon_ico_end");
+
+/**
+ * HTTP Server monitor task used to track events of the HTTP Server.
+ * @param pvParameters parameter which can be passed to the task.
+ */
+static void http_server_monitor(void* pvParameters) {
+  http_server_queue_message_t msg;
+
+  for(;;) {
+    if (xQueueReceive(http_server_monitor_queue_handle, &msg, portMAX_DELAY)) {
+      switch(msg.msgID) {
+        case HTTP_MESSAGE_WIFI_CONNECT_INIT:
+          ESP_LOGI(TAG, "HTTP_MESSAGE_WIFI_CONNECT_INIT");
+          break;
+        case HTTP_MESSAGE_WIFI_CONNECT_SUCCESS:
+          ESP_LOGI(TAG, "HTTP_MESSAGE_WIFI_CONNECT_SUCCESS");
+          break;
+        case HTTP_MESSAGE_WIFI_CONNECT_FAIL:
+          ESP_LOGI(TAG, "HTTP_MESSAGE_WIFI_CONNECT_FAIL");
+          break;
+        case HTTP_MESSAGE_OTA_UPDATE_SUCCESSFUL:
+          ESP_LOGI(TAG, "HTTP_MESSAGE_OTA_UPDATE_SUCCESSFUL");
+          break;
+        case HTTP_MESSAGE_OTA_UPDATE_FAILED:
+          ESP_LOGI(TAG, "HTTP_MESSAGE_OTA_UPDATE_FAILED");
+          break;
+        case HTTP_MESSAGE_OTA_UPDATE_INITIALIZED:
+          ESP_LOGI(TAG, "HTTP_MESSAGE_OTA_UPDATE_INITIALIZED");
+          break;
+        default: 
+          break;
+      }
+    }
+  }
+}
 
 /**
  * JQuery get handler is requested when access the webpage.
@@ -111,9 +145,17 @@ static httpd_handle_t http_server_configure(void) {
   // Generate default configuration
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 
-  // TODO: Create HTTP Server Monitor task
+  // Create HTTP Server Monitor task
+  xTaskCreatePinnedToCore(&http_server_monitor, 
+                          "http_server_monitor", 
+                          HTTP_SERVER_MONITOR_STACK_SIZE, 
+                          NULL, 
+                          HTTP_SERVER_MONITOR_PRIORITY, 
+                          &task_http_server_monitor, 
+                          HTTP_SERVER_MONITOR_CORE_ID);
 
-  // TODO: Create the message queue
+  // Create the message queue
+  http_server_monitor_queue_handle = xQueueCreate(3, sizeof(http_server_queue_message_t));
 
   // The core that the HTTP server will run on
   config.core_id = HTTP_SERVER_TASK_CORE_ID;
@@ -208,4 +250,16 @@ void http_server_stop(void) {
     ESP_LOGI(TAG, "http_server_stop; stopping HTTP server");
     http_server_handle = NULL;
   }
+
+  if (task_http_server_monitor) {
+    vTaskDelete(task_http_server_monitor);
+    ESP_LOGI(TAG, "http_server_stop: Stopping HTTP server monitor.");
+    task_http_server_monitor = NULL;
+  }
+}
+
+BaseType_t http_server_monitor_send_message(http_server_message_e msgID) {
+  http_server_queue_message_t msg;
+  msg.msgID = msgID;
+  return xQueueSend(http_server_monitor_queue_handle, &msg, portMAX_DELAY);
 }
