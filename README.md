@@ -1,4 +1,4 @@
-# ESP32-S3 WiFi Application
+# ESP32-S3 WiFi Application and Web Page Support for DHT22/DHT11 Temperature and Humidity Sensor
 
 ## Overview
 
@@ -28,23 +28,17 @@ Key functionalities include:
 `xQueueReceive`) for event coordination.
 - Connect the ESP32 using previously saved credentials.
 
-## ESP-IDF APIs used
+## HTTPS Server Implementation
 
-- Configuration steps and ESP-DF APIs used
-  - **Define WiFi settings**: Header file with SSID, Password, IP, Gateway, Netmask, etc.
-  - **Define WiFi FreeRTOS task**: Use `xTaskCreatePinnedToCore` or `xTaskCreate`.
-  - **Create an event handler**: Call `esp_event_handler_instance_register`.
-  - **Implement default configure**: Initialize TCP/IP stack using `esp_netif_init` and WiFi configuration by calling 
-  `esp_wifi_init`, `esp_wifi_set_storage`, and default configurations `esp_netif_create_default_wifi_ap`, 
-  `esp_netif_create_default_wifi_sta`.
-  - **Define ESP32 SoftAP configuration**: Define AP Settings `wifi_config_t` struct and static IP. APIs used:
-    - `esp_netif_set_ip_info`
-    - `esp_netif_dhcs_start`
-    - `esp_wifi_set_mode`
-    - `esp_wifi_set_config`
-    - `esp_wifi_set_bandwidth`
-    - `esp_wifi_set_ps`
-  - Start Wifi (`esp_wifi_start`)
+- The HTTP Server will support the web page files (.html, .css, and .js).
+- It will also support OTA (Over the Air) firmware updates.
+- Additionally, support for the DHT22/DHT11 Temperature and Humidity Sensor readings for display on the web page will be 
+added. 
+- The HTTP Server will be able to respond to Connection and Disconnection buttons on the web page (e.g., by entering 
+SSID and Password into text fields and clicking connect and disconnect for removing a connection).
+- The web server will also handle sending connection information (SSID, IP, Gateway, and Netmask) about the active 
+connection to the web page.
+- We will also send the ESP32's assigned SSID to the web page.
 
 ## RGB Status Functions
 
@@ -57,6 +51,8 @@ The following status functions update the RGB color to indicate the system's cur
 Each status update calls `rgb_set_color()` with the appropriate RGB values.
 
 ## Hardware Setup
+
+### Common Anode/Cathode RGB LEDs
 
 This project utilizes common anode or cathode RGB LEDs. Ensure the correct wiring and configuration based on the LED 
 type:
@@ -93,6 +89,8 @@ Choose GPIO pins capable of Pulse Width Modulation (PWM) to control the LED colo
 - **Red Pin:** Connect to GPIO 19 through a current-limiting resistor (e.g., 220Ω).
 - **Green Pin:** Connect to GPIO 20 through a current-limiting resistor.
 - **Blue Pin:** Connect to GPIO 21 through a current-limiting resistor.
+
+### DHT11 Temperature and Humidity Sensor
 
 ## ESP-IDF Setup Instructions
 
